@@ -2,13 +2,14 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { requestLogger } from './middleware/requestLogger';
-import { logError } from './config/logger';
-import { initializeDatabase } from './services/textAnalyzer.service';
+import logger, { logError } from './config/logger';
 import passport from 'passport';
 import MongoStore from 'connect-mongo';
 import { configurePassport } from './config/passport';
 import authRoutes from './routes/auth';
 import session from 'express-session';
+import textRoutes from './routes/api';
+import { connectDatabase } from './config/database';
 
 
 dotenv.config();
@@ -18,7 +19,6 @@ const port = process.env.PORT || 8888;
 
 app.use(cors());
 app.use(express.json());
-
 app.use(requestLogger);
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
@@ -52,18 +52,19 @@ configurePassport();
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/api', textRoutes);
 
 const startServer = async () => {
   try {
-    await initializeDatabase();
+    await connectDatabase();
+    app.listen(port, () => {
+      logger.info(`Server running on port ${port}`);
+    });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    logger.error('Failed to start server:', error);
     process.exit(1);
   }
 };
 
 startServer();
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
 
