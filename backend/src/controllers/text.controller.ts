@@ -43,7 +43,6 @@ export class TextController {
     }
   }
 
-  // Get text by ID (with user verification)
   public async getText(req: Request, res: Response): Promise<void> {
     try {
       const { id, userEmail } = req.body;

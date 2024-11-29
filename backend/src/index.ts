@@ -54,3 +54,5 @@ app.listen(port, async () => {
   await startServer();
   logger.info(`Server running on port ${port}`);
 });
+
+export default app;
