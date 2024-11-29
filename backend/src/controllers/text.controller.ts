@@ -11,15 +11,15 @@ export class TextController {
   // Create new text
   public async createText(req: Request, res: Response): Promise<void> {
     try {
-      const { title, content, userId } = req.body;
-    //   const userId = req.user?._id; // From auth middleware
+      const { title, content, userEmail } = req.body;
+    //   const userEmail = req.user?._id; // From auth middleware
       
       if (!content || !title) {
         res.status(400).json({ error: 'Title and content are required' });
         return;
       }
 
-      if (!userId) {
+      if (!userEmail) {
         res.status(401).json({ error: 'User ID is required' });
         return;
       }
@@ -27,14 +27,14 @@ export class TextController {
       const analysis = textAnalyzerService.analyzeText(content);
       
       const text = new Text({
-        userId,
+        userEmail,
         title,
         content,
         analysis
       });
 
       await text.save();
-      logger.info(`New text created with ID: ${text._id} for user: ${userId}`);
+      logger.info(`New text created with ID: ${text._id} for user: ${userEmail}`);
       
       res.status(201).json(text);
     } catch (error) {
@@ -46,15 +46,15 @@ export class TextController {
   // Get text by ID (with user verification)
   public async getText(req: Request, res: Response): Promise<void> {
     try {
-      const { id, userId } = req.params;
-    //   const userId = req.user?._id;
+      const { id, userEmail } = req.body;
+    //   const userEmail = req.user?._id;
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
         res.status(400).json({ error: 'Invalid text ID' });
         return;
       }
 
-      const text = await Text.findOne({ _id: id, userId });
+      const text = await Text.findOne({ _id: id, userEmail });
       
       if (!text) {
         res.status(404).json({ error: 'Text not found' });
@@ -71,19 +71,21 @@ export class TextController {
   // Get all texts for a user
   public async getAllTexts(req: Request, res: Response): Promise<void> {
     try {
-    //   const userId = req.user?._id;
-      const { userId } = req.params;
+    //   const userEmail = req.user?._id;
+      const { userEmail } = req.query;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const sortBy = req.query.sortBy as string || 'createdAt';
       const order = req.query.order === 'asc' ? 1 : -1;
 
-      const texts = await Text.find({ userId })
+      const texts = await Text.find({ userEmail })
         .sort({ [sortBy]: order })
         .skip((page - 1) * limit)
         .limit(limit);
 
-      const total = await Text.countDocuments({ userId });
+      logger.info(`Fetched ${texts.length} texts for user: ${userEmail}`);
+
+      const total = await Text.countDocuments({ userEmail });
       
       res.json({
         texts,
@@ -103,24 +105,17 @@ export class TextController {
   // Update text
   public async updateText(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-    //   const userId = req.user?._id;
-      const { title, content, userId } = req.body;
+      const { id, title, content, userEmail } = req.body;
       
       if (!content) {
         res.status(400).json({ error: 'Content is required' });
         return;
       }
 
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        res.status(400).json({ error: 'Invalid text ID' });
-        return;
-      }
-
       const analysis = textAnalyzerService.analyzeText(content);
       
       const text = await Text.findOneAndUpdate(
-        { _id: id, userId },
+        { _id: id, userEmail },
         { title, content, analysis },
         { new: true }
       );
@@ -130,7 +125,7 @@ export class TextController {
         return;
       }
       
-      logger.info(`Text updated with ID: ${text._id} for user: ${userId}`);
+      logger.info(`Text updated with ID: ${text._id} for user: ${userEmail}`);
       res.json(text);
     } catch (error) {
       logger.error('Error updating text:', error);
@@ -141,22 +136,17 @@ export class TextController {
   // Delete text
   public async deleteText(req: Request, res: Response): Promise<void> {
     try {
-      const { id, userId } = req.params;
-    //   const userId = req.user?._id;
+      const { id, userEmail } = req.body;
+    //   const userEmail = req.user?._id;
 
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        res.status(400).json({ error: 'Invalid text ID' });
-        return;
-      }
-
-      const text = await Text.findOneAndDelete({ _id: id, userId });
+      const text = await Text.findOneAndDelete({ _id: id, userEmail });
       
       if (!text) {
         res.status(404).json({ error: 'Text not found' });
         return;
       }
       
-      logger.info(`Text deleted with ID: ${text._id} for user: ${userId}`);
+      logger.info(`Text deleted with ID: ${text._id} for user: ${userEmail}`);
       res.json({ message: 'Text deleted successfully' });
     } catch (error) {
       logger.error('Error deleting text:', error);
@@ -167,15 +157,15 @@ export class TextController {
   // Get analysis only
   public async getAnalysis(req: Request, res: Response): Promise<void> {
     try {
-      const { id, userId } = req.params;
-    //   const userId = req.user?._id;
+      const { id, userEmail } = req.params;
+    //   const userEmail = req.user?._id;
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
         res.status(400).json({ error: 'Invalid text ID' });
         return;
       }
 
-      const text = await Text.findOne({ _id: id, userId });
+      const text = await Text.findOne({ _id: id, userEmail });
       
       if (!text) {
         res.status(404).json({ error: 'Text not found' });
@@ -192,8 +182,8 @@ export class TextController {
   // Search texts
   public async searchTexts(req: Request, res: Response): Promise<void> {
     try {
-    //   const userId = req.user?._id;
-      const { userId } = req.params;
+    //   const userEmail = req.user?._id;
+      const { userEmail } = req.params;
       const query = req.query.q as string;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
@@ -204,7 +194,7 @@ export class TextController {
       }
 
       const texts = await Text.find({
-        userId,
+        userEmail,
         $or: [
           { title: { $regex: query, $options: 'i' } },
           { content: { $regex: query, $options: 'i' } }
@@ -215,7 +205,7 @@ export class TextController {
         .limit(limit);
 
       const total = await Text.countDocuments({
-        userId,
+        userEmail,
         $or: [
           { title: { $regex: query, $options: 'i' } },
           { content: { $regex: query, $options: 'i' } }
@@ -240,11 +230,11 @@ export class TextController {
   // Get text statistics
   public async getTextStatistics(req: Request, res: Response): Promise<void> {
     try {
-    //   const userId = req.user?._id;
-      const { userId } = req.params;
+    //   const userEmail = req.user?._id;
+      const { userEmail } = req.params;
 
       const stats = await Text.aggregate([
-        { $match: { userId: new mongoose.Types.ObjectId(userId as string) } },
+        { $match: { userEmail: userEmail } },
         {
           $group: {
             _id: null,

@@ -2,10 +2,16 @@ import mongoose, { Schema, Model } from 'mongoose';
 import { IText } from '../types/models';
 
 const textSchema = new Schema<IText>({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+  // userId: {
+  //   type: Schema.Types.ObjectId,
+  //   ref: 'User',
+  //   required: true
+  // },
+  userEmail: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 200
   },
   title: {
     type: String,

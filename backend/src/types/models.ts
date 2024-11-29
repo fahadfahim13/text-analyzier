@@ -9,7 +9,8 @@ export interface IUser {
   }
   
 export interface IText {
-  userId: mongoose.Types.ObjectId;
+  // userId: mongoose.Types.ObjectId;
+  userEmail: string;
   content: string;
   title: string;
   analysis: {
