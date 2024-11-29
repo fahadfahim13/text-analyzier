@@ -1,4 +1,4 @@
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement, useEffect, useState } from "react";
 import {
   Dialog,
   DialogClose,
@@ -20,12 +20,15 @@ import TemplateSelector from "./TemplateSelector";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { useGenerateTextMutation } from "@/lib/redux/APIs/resume";
+import { useRouter } from "next/navigation";
+import { toast } from "@/components/ui/use-toast";
 
 const CreateResumeCarousel = (props: { triggerElement: React.ReactNode }) => {
   const { triggerElement } = props;
   const { status, data: userData } = useSession({
     required: true,
   });
+  const router = useRouter();
 
   const [generateText, {
     isLoading: isGeneratingText,
@@ -38,6 +41,16 @@ const CreateResumeCarousel = (props: { triggerElement: React.ReactNode }) => {
   const [api, setApi] = useState<CarouselApi>();
   const [userInput, setUserInput] = useState("");
   const [title, setTitle] = useState("");
+
+  useEffect(() => {
+    if (generatedTextOutput && !isGeneratingText && !isErrorGeneratingText) {
+      toast({
+        title: "Text Generated Successfully",
+        description: "Redirecting to your text",
+      });
+      router.push(`/Text/${generatedTextOutput._id}`);
+    }
+  }, [generatedTextOutput, isGeneratingText, isErrorGeneratingText, errorGeneratingText]);
   
   const goNext = () => {
     console.log({userData});
@@ -56,7 +69,7 @@ const CreateResumeCarousel = (props: { triggerElement: React.ReactNode }) => {
       <DialogTrigger>{triggerElement}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Build Your Resume</DialogTitle>
+          <DialogTitle>Analyze Your Text</DialogTitle>
         </DialogHeader>
         <DialogDescription>
           <Input

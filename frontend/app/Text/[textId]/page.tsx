@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   useGetDetailsTextMutation,
   useUpdateTextMutation,
@@ -17,6 +17,8 @@ const TextView = () => {
     required: true,
   });
 
+  const router = useRouter();
+
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
 
@@ -26,7 +28,7 @@ const TextView = () => {
       data: textData,
       isSuccess: textDataSuccess,
       isError: textDataEror,
-      isLoading: textDataLoading
+      isLoading: textDataLoading,
     },
   ] = useGetDetailsTextMutation();
 
@@ -56,15 +58,16 @@ const TextView = () => {
       !textUpdateError &&
       textUpdateSuccess
     ) {
-        toast({
-            title: "Successfully Updated Text",
-            description: "Your Text has been updated successfully!!",
-            style: {
-                backgroundColor: "green",
-                color: "white",
-            },
-        });
-        window.location.reload();
+      toast({
+        title: "Successfully Updated Text",
+        description: "Your Text has been updated successfully!!",
+        style: {
+          backgroundColor: "green",
+          color: "white",
+        },
+      });
+      window.location.reload();
+      // router.refresh();
     }
     if (!textUpdateLoading && textUpdateError && !textUpdateSuccess) {
       toast({
@@ -88,7 +91,7 @@ const TextView = () => {
   }, [textDataEror, textDataLoading, textDataSuccess, textData]);
 
   const handleUpdateText = () => {
-    if(userData?.user?.email){
+    if (userData?.user?.email) {
       updateText({
         id: textId.toString(),
         title: title,
@@ -126,49 +129,60 @@ const TextView = () => {
         </div>
         <div className="w-7/12 border border-slate-400 rounded-lg p-6 flex-1">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
-            <div className="rounded-sm border border-stroke bg-white text-center shadow-default dark:border-strokedark dark:bg-boxdark">
-              <div className="mt-4 flex items-end justify-between">
-                <div>
-                  <h4 className="text-title-md font-bold text-black dark:text-white">{textData?.analysis?.characterCount}</h4>
-                  <span className="text-sm font-medium">Total Characters</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-sm border border-stroke bg-white text-center shadow-default dark:border-strokedark dark:bg-boxdark">
-              <div className="mt-4 flex items-end justify-between">
-                <div>
-                  <h4 className="text-title-md font-bold text-black dark:text-white">{textData?.analysis?.paragraphCount}</h4>
-                  <span className="text-sm font-medium">Total Paragraphs</span>
-                </div>
-              </div>
-            </div>
             
-            <div className="rounded-sm border border-stroke bg-white text-center shadow-default dark:border-strokedark dark:bg-boxdark">
-              <div className="mt-4 flex items-end justify-between">
-                <div>
-                  <h4 className="text-title-md font-bold text-black dark:text-white">{textData?.analysis?.wordCount}</h4>
-                  <span className="text-sm font-medium">Total Words</span>
-                </div>
+            <article className="flex items-center gap-4 rounded-lg border border-gray-100 bg-white p-6">
+              <div>
+                <p className="text-2xl font-medium text-gray-900 text-center">
+                  {textData?.analysis?.characterCount}
+                </p>
+                <p className="text-sm text-gray-500 text-center">Total Characters</p>
               </div>
-            </div>
+            </article>
 
-            <div className="rounded-sm border border-stroke bg-white text-center shadow-default dark:border-strokedark dark:bg-boxdark">
-              <div className="mt-4 flex items-end justify-between">
-                <div>
-                  <h4 className="text-title-md font-bold text-black dark:text-white">{textData?.analysis?.sentenceCount}</h4>
-                  <span className="text-sm font-medium">Total Sentences</span>
-                </div>
+            <article className="flex items-center gap-4 rounded-lg border border-gray-100 bg-white p-6">
+              <div>
+                <p className="text-2xl font-medium text-gray-900 text-center">
+                  {textData?.analysis?.paragraphCount}
+                </p>
+                <p className="text-sm text-gray-500 text-center">Total Paragraphs</p>
               </div>
-            </div>
+            </article>
+
+            <article className="flex items-center gap-4 rounded-lg border border-gray-100 bg-white p-6">
+              <div>
+                <p className="text-2xl font-medium text-gray-900 text-center">
+                  {textData?.analysis?.wordCount}
+                </p>
+                <p className="text-sm text-gray-500 text-center">Total Words</p>
+              </div>
+            </article>
+
+            <article className="flex items-center gap-4 rounded-lg border border-gray-100 bg-white p-6">
+              <div>
+                <p className="text-2xl font-medium text-gray-900 text-center">
+                  {textData?.analysis?.sentenceCount}
+                </p>
+                <p className="text-sm text-gray-500 text-center">Total Sentences</p>
+              </div>
+            </article>
           </div>
 
-          <div className="w-full">
-            <h4 className="text-lg font-semibold mb-4 mt-6 w-full">Longest Words</h4>
-            <ul className="list-disc">
-              {textData?.analysis?.longestWords.map((item: string, index: number) => (
-                <li className="text-md" key={index}>{item}</li>
-              ))}
+          <hr className="border-slate-400 my-4" />
+
+          <div className="w-full mt-8 px-8">
+            <h4 className="text-lg font-semibold mb-2 w-full">
+              Longest Words
+            </h4>
+            <ul className="list-decimal border border-slate-400 rounded-lg p-4">
+              {textData?.analysis?.longestWords.map(
+                (item: string, index: number) => (
+                  <>
+                  <li className="text-md p-2 m-4 list-item" key={index}>
+                    {item}
+                  </li>
+                  </>
+                )
+              )}
             </ul>
           </div>
         </div>

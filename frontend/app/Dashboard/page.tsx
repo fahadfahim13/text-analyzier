@@ -72,7 +72,7 @@ const Dashboard = () => {
   }, [userData, status, allTexts]);
 
   return (
-    <div className="container w-full mt-4 px-1">
+    <div className="container w-full mt-4 px-1 min-h-screen">
       <div className="flex justify-between">
         <h1 className="text-2xl">Dashboard</h1>
         <CreateResumeCarousel
@@ -91,7 +91,7 @@ const Dashboard = () => {
           !allTextsLoading &&
           allTexts.texts.length > 0 ? (
             allTexts.texts.map((res: any) => (
-              <div className="card bg-base-100 w-[26rem] shadow-xl cursor-pointer">
+              <div className="card bg-base-900 w-[26rem] shadow-xl cursor-pointer">
                 <div className="card-body flex flex-row justify-between break-words">
                   <h2 className="card-title w-2/3 break-words">{res.title}</h2>
                   <div className="flex flex-row justify-center align-middle gap-2 min-w-1/4">
